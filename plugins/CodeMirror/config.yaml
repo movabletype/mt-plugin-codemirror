@@ -1,0 +1,8 @@
+id: CodeMirror
+name: CodeMirror
+version: 1.00
+
+editors:
+    codemirror:
+        label: CodeMirror
+        template: editor.tmpl

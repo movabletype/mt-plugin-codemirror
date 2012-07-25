@@ -1,0 +1,160 @@
+<mt:setvarblock name="js_include" append="1">
+<script type="text/javascript" src="<mt:Var name="static_uri">codemirror/lib/codemirror.js"></script>
+<link rel="stylesheet" href="<mt:Var name="static_uri">codemirror/lib/codemirror.css">
+<script type="text/javascript" src="<mt:Var name="static_uri">codemirror/mt/xml.js"></script>
+<script type="text/javascript" src="<mt:Var name="static_uri">codemirror/mt/javascript.js"></script>
+<script type="text/javascript" src="<mt:Var name="static_uri">codemirror/mt/css.js"></script>
+<script type="text/javascript" src="<mt:Var name="static_uri">codemirror/mt/htmlmixed.js"></script>
+<link rel="stylesheet" href="<mt:Var name="static_uri">codemirror/mt/mt.css">
+<style type="text/css">
+.codemirror-wysiwyg-toolber {
+    background-color: #F3F3F3;
+    padding: 10px;
+    border: 1px solid #ADADAD;
+    border-bottom-width: 0;
+}
+
+.codemirror-wysiwyg-toolber .active {
+    font-weight: bold;
+}
+</style>
+<script type="text/javascript">
+;(function($) {
+
+MT.Editor.CodeMirror = function(id) {
+    var editor = this;
+    MT.Editor.apply(this, arguments);
+
+    this.editor    = editor;
+    this.$textarea = $('#' + id);
+    this.textarea  = this.$textarea.get(0);
+};
+
+$.extend(MT.Editor.CodeMirror, MT.Editor, {
+    formats: function() {
+        return ['source'];
+    },
+    config: {
+        lineNumbers: true,
+        lineWrapping: false,
+        tabMode: "default",
+        indentUnit: 0,
+        pollForIME: true,
+        mode: "text/html",
+        onChange: function() {}
+    }
+});
+
+$.extend(MT.Editor.CodeMirror.prototype, MT.Editor.prototype, {
+    _initToolbar: function() {
+        var adapter = this;
+
+        var controls = [
+            ['strong', 'bold'],
+            ['em', 'italic'],
+            ['blockquote', 'blockquote'],
+            ['ul', 'insertUnorderedList'],
+            ['ol', 'insertOrderedList'],
+            ['li', 'insertListItem']
+        ];
+
+        this.$toolbar = $('<div class="codemirror-wysiwyg-toolber"></div>');
+        $.each(controls, function() {
+            var name    = this[0];
+            var command = this[1];
+            $('<button type="button" class="button">' + name + '</button>')
+                .click(function() {
+                    adapter.command.execCommand(command);
+                    adapter.codemirror.focus();
+                    adapter.codemirror.execCommand('goCharRight');
+
+                    if (adapter.command.isStateActive(command)) {
+                        $(this).addClass('active');
+                    }
+                    else {
+                        $(this).removeClass('active');
+                    };
+                })
+                .appendTo(adapter.$toolbar);
+        });
+        this.$textarea.before(this.$toolbar);
+    },
+
+    initEditor: function(format) {
+        var adapter = this;
+
+        this._initToolbar();
+
+        var config   = $.extend({}, this.constructor.config);
+        var onChange = config.onChange;
+        config.onChange = function() {
+            onChange.apply(this, arguments);
+            adapter.setDirty();
+        };
+
+        this.codemirror = CodeMirror.fromTextArea(this.textarea, config);
+        this.$wrapper   = $(this.codemirror.getWrapperElement());
+        this.$wrapper.css({
+            'border-top-width': '0'
+        });
+
+        this.command = new MT.EditorCommand.Source(this);
+        this.setFormat(format);
+    },
+
+    setFormat: function(format) {
+        this.command.setFormat(format);
+    },
+
+    show: function() {
+        this.$wrapper.show();
+        this.$toolbar.show();
+        this.$textarea.hide();
+    },
+
+    hide: function() {
+        this.$wrapper.hide();
+        this.$toolbar.hide();
+    },
+
+    save: function() {
+        this.codemirror.save();
+    },
+
+    getContent: function(content) {
+        return this.codemirror.getValue();
+    },
+
+    setContent: function(content) {
+        this.codemirror.setValue(content);
+    },
+
+    getSelectedText: function() {
+        return this.codemirror.getSelection();
+    },
+
+    setSelection: function(content) {
+        return this.codemirror.replaceSelection(content);
+    },
+
+    insertContent: function(content) {
+        this.codemirror.replaceSelection(content);
+    },
+
+    getHeight: function() {
+        return this.saveHeight;
+    },
+
+    setHeight: function(height) {
+        this.saveHeight = height;
+    }
+});
+
+MT.EditorManager.register('codemirror', MT.Editor.CodeMirror);
+
+})(jQuery);
+</script>
+<script type="text/javascript">
+jQuery.extend(MT.Editor.CodeMirror.config, <mt:Var name="config" to_json="1" />);
+</script>
+</mt:setvarblock>
