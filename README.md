@@ -1,3 +1,5 @@
+This plugin is no longer supported in Movable Type 8 and later.
+
 # CodeMirror for Movable Type
 
 Enable to use the [CodeMirror](http://codemirror.net/) as a source editor.
